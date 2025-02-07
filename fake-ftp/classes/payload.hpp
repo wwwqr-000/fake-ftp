@@ -48,39 +48,35 @@ void createUsefulBuff(std::string& buff) {
 
 std::string reactBasedOnRequest(SOCKET clientSocket, std::string buff, size_t handshakeIndex) {
     createUsefulBuff(buff);
-    switch (handshakeIndex) {
-        case 1://Respond to USER %name% with ok
-            sendToClient(clientSocket, "331 Username OK, need password\r\n");
-        break;
-        case 2://Respond to PASS %pw% with ok
-            sendToClient(clientSocket, "230 Login successful\r\n");
-        break;
-        case 3://Respond to SYST with unix-based system
-            sendToClient(clientSocket, "215 UNIX Type: L8\r\n");
-        break;
-        case 4://Respond to FEAT with no features
-            sendToClient(clientSocket, "211 No additional features\r\n");
-        break;
-    }
     std::cout << "buff = |" << buff << "|\n";
-    if (handshakeIndex >= 5) {
-        if (buff == "PWD") {
-            sendToClient(clientSocket, "257 \"/\" is the current directory\r\n");
-        }
-        else if (buff == "CWD /") {
-            sendToClient(clientSocket, "250 CWD command successful\r\n");
-        }
-        else if (buff == "TYPE A") {
-            sendToClient(clientSocket, "200 Type set to A\r\n");
-        }
-        else if (buff == "PASV") {
-            sendToClient(clientSocket, "227 Entering Passive Mode (192,168,1,1,19,44)\r\n");
-        }
-        else if (buff == "LIST -a" || buff == "LIST") {
-            sendToClient(clientSocket, "150 Here comes the directory listing\r\n");
-            sendToClient(clientSocket, "drwxr-xr-x 2 user user 4096 Feb  7 12:34 exampleDir\r\n");
-            sendToClient(clientSocket, "226 Transfer complete\r\n");
-        }
+    if (buff == "PWD") {
+        sendToClient(clientSocket, "257 \"/\" is the current directory\r\n");
+    }
+    else if (buff == "USER wwwqr") {
+        sendToClient(clientSocket, "331 Username OK, need password\r\n");
+    }
+    else if (buff == "PASS wwwqr") {
+        sendToClient(clientSocket, "230 Login successful\r\n");
+    }
+    else if (buff == "SYST") {
+        sendToClient(clientSocket, "215 UNIX Type: L8\r\n");
+    }
+    else if (buff == "FEAT") {
+        sendToClient(clientSocket, "211 No additional features\r\n");
+    }
+    else if (buff == "CWD /") {
+        sendToClient(clientSocket, "250 CWD command successful\r\n");
+    }
+    else if (buff == "TYPE A") {
+        sendToClient(clientSocket, "200 Type set to A\r\n");
+    }
+    else if (buff == "PASV") {
+        sendToClient(clientSocket, "227 Entering Passive Mode (172,17,240,1,44)\r\n");
+    }
+    else if (buff == "LIST -a" || buff == "LIST") {
+        sendToClient(clientSocket, "150 Here comes the directory listing\r\n");
+        sendToClient(clientSocket, "-rw-r--r--    1 user    group         479 Feb  7 12:34 file1.txt\r\n");
+        sendToClient(clientSocket, "226 Transfer complete\r\n");
     }
     return "";
 }
