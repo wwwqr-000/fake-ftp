@@ -47,6 +47,9 @@ std::string reactBasedOnRequest(SOCKET clientSocket, std::string buff, size_t ha
     else if (buff == "TYPE A") {
         sendToClient(clientSocket, "200 Type set to A\r\n");
     }
+    else if (buff == "TYPE I") {
+        sendToClient(clientSocket, "200 Type set to I\r\n");
+    }
     else if (buff == "PASV") {
         size_t dataPort = 2121;
         sendToClient(clientSocket, "227 Entering Passive Mode (127,0,0,1," + std::to_string(dataPort / 256) + "," + std::to_string(dataPort % 256) + ")\r\n");
@@ -61,7 +64,8 @@ std::string reactBasedOnRequest(SOCKET clientSocket, std::string buff, size_t ha
             sendToClient(clientSocket, "425 Can't open data connection.\r\n");
         }
         else {
-            sendToClient(dataClient, "-rw-r--r--    1 user    group         479 Feb  7 12:34 file1.txt\r\n");
+            sendToClient(dataClient, "-rw-r--r--    1 user    group         1286736435445 Feb  7 12:34 passwords.txt\r\n");
+            sendToClient(dataClient, "drwxr-xr-x    1 user    group        4096 Feb  7 9:11 fake_folder\r\n");
             shutdown(dataClient, SD_SEND);
             closesocket(dataClient);
             sendToClient(clientSocket, "226 Transfer complete\r\n");
