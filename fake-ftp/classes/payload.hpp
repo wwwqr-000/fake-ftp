@@ -1,39 +1,16 @@
 #pragma once
 
-std::string getDataBasedOnOrder(int orderCount) {
-    std::string toClientMsg = "";
-    switch (orderCount) {
-        case 1://Send ok user, need pass
-            toClientMsg = "331 Username OK, need password\r\n";
-        break;
-        case 2://Send login ok
-            toClientMsg = "230 Login successful\r\n";
-        break;
-        case 3://Send type of system
-            toClientMsg = "215 UNIX Type: L8\r\n";
-        break;
-        case 4://Send features of ftp server
-            toClientMsg = "211 No additional features\r\n";
-        break;
-        case 5://Send current dir path
-            toClientMsg = "257 \"/\" is the current directory\r\n";
-        break;
-        case 6://Send confirm ASCII mode
-            toClientMsg = "200 Type set to A\r\n";
-        break;
-        case 7://React to PASV, send server details
-            toClientMsg = "227 Entering Passive Mode (192,168,1,1,19,44)\r\n";
-        break;
-        case 8://React to LIST -a by sending invite msg for sending dirs
-            toClientMsg = "150 Here comes the directory listing\r\n";
-        break;
-        case 9://Send confirm ASCII mode (again)
-            toClientMsg = "200 Type set to A\r\n";
-        break;
+SOCKET openDataConnection(int port) {
+    SOCKET tmpDataSocket = socket(AF_INET, SOCK_STREAM, 0);
+    sockaddr_in dataAddr;
+    dataAddr.sin_family = AF_INET;
+    dataAddr.sin_addr.s_addr = INADDR_ANY;
+    dataAddr.sin_port = htons(port);
 
-    }
+    bind(tmpDataSocket, (sockaddr*)&dataAddr, sizeof(dataAddr));
+    listen(tmpDataSocket, 1);  // Allow one incoming connection
 
-    return toClientMsg;
+    return tmpDataSocket;
 }
 
 void createUsefulBuff(std::string& buff) {
@@ -71,12 +48,24 @@ std::string reactBasedOnRequest(SOCKET clientSocket, std::string buff, size_t ha
         sendToClient(clientSocket, "200 Type set to A\r\n");
     }
     else if (buff == "PASV") {
-        sendToClient(clientSocket, "227 Entering Passive Mode (172,17,240,1,44)\r\n");
+        size_t dataPort = 2121;
+        sendToClient(clientSocket, "227 Entering Passive Mode (127,0,0,1," + std::to_string(dataPort / 256) + "," + std::to_string(dataPort % 256) + ")\r\n");
+        dataSocket = openDataConnection(dataPort);
     }
     else if (buff == "LIST -a" || buff == "LIST") {
         sendToClient(clientSocket, "150 Here comes the directory listing\r\n");
-        sendToClient(clientSocket, "-rw-r--r--    1 user    group         479 Feb  7 12:34 file1.txt\r\n");
-        sendToClient(clientSocket, "226 Transfer complete\r\n");
+
+        SOCKET dataClient = accept(dataSocket, nullptr, nullptr);
+        if (dataClient == INVALID_SOCKET) {
+            std::cout << "Invalid dataClient.\n";
+            sendToClient(clientSocket, "425 Can't open data connection.\r\n");
+        }
+        else {
+            sendToClient(dataClient, "-rw-r--r--    1 user    group         479 Feb  7 12:34 file1.txt\r\n");
+            shutdown(dataClient, SD_SEND);
+            closesocket(dataClient);
+            sendToClient(clientSocket, "226 Transfer complete\r\n");
+        }
     }
     return "";
 }

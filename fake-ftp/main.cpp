@@ -6,13 +6,14 @@
 
 void sendToClient(SOCKET, std::string);//Pre-load
 
-#include "classes/payload.hpp"
-
 //Linkers: gdi32, ws2_32
 
 const int port = 21;
 std::vector<SOCKET> clients;
+SOCKET dataSocket;
 std::vector<std::thread> threads;
+
+#include "classes/payload.hpp"
 
 void wait() {
     system("set /p end=");
